@@ -17,6 +17,8 @@ class RabbitDriver:
         self.channel = rabbit_connection.channel()
         self.channel.queue_declare(queue='load')
         self.routing_key = 'load'
+        self.error_key = 'errors'
+        self.channel.queue_declare(queue='errors')
         self.channel.basic_consume(queue='load', on_message_callback=callback, auto_ack=True)
 
 

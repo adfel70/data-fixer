@@ -7,9 +7,13 @@ from drivers.rabbit_driver import rabbit_driver
 def main():
     print(' [*] Waiting for messages.')
     for method_frame, properties, body in rabbit_driver.channel.consume(rabbit_driver.routing_key):
-        body = body.decode('utf-8')
-        body = ast.literal_eval(body)
-        fix_db(body)
+        try:
+            body = body.decode('utf-8')
+            body = ast.literal_eval(body)
+            fix_db(body)
+        except Exception as e:
+            print(str(e))
+            rabbit_driver.channel.basic_publish(exchange='', routing_key=rabbit_driver.error_key, body=body)
         rabbit_driver.channel.basic_ack(method_frame.delivery_tag)
 
 

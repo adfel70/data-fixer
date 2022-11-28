@@ -17,35 +17,34 @@ def filter_attr(raw_docs):
     return docs
 
 
-def fix_doc_vals(coll_type, doc):
+def fix_doc_vals(coll_type, doc: dict):
     is_valid = True
-    for key in doc:
+    for key, value in doc.items():
         if key == "_id" or (
-                coll_type == "KEYWORDS" and key == "id" and isinstance(doc[key], int)):
+                coll_type == "KEYWORDS" and key == "id" and isinstance(value, int)):
             continue
-        if not isinstance(doc[key], str):
+        if not isinstance(value, str):
             is_valid = False
             break
         if key == "title":
             continue
         try:
-            doc[key] = ast.literal_eval(doc[key])
+            doc[key] = ast.literal_eval(value)
         except:
             is_valid = False
             break
     return is_valid
 
 
-def fix_docs(docs, coll_type):
+def fix_docs(docs: dict, coll_type):
     fixed_docs = []
     bad_docs = []
-    for doc_id in docs:  # todo ask google how todo it clean
-        doc = docs[doc_id]
-        is_valid = fix_doc_vals(coll_type, doc)
+    for key, value in docs.items():
+        is_valid = fix_doc_vals(coll_type, value)
         if is_valid:
-            fixed_docs.append(doc)
+            fixed_docs.append(value)
         else:
-            bad_docs.append(doc)
+            bad_docs.append(value)
     return fixed_docs, bad_docs
 
 
@@ -57,13 +56,19 @@ def insert_docs(end_coll, fixed_docs: list, bad_docs: list):
 
 
 def fix_db(body):
-    obj_list = [ObjectId(doc_id) for doc_id in body[0]]
-    coll_type = body[1]
-    end_coll, src_coll = get_coll(coll_type)
-    raw_docs = list(src_coll.find({"_id": {"$in": obj_list}}))
+    coll_type, raw_docs = get_docs(body)
+    end_coll, _ = get_coll(coll_type)
     docs = filter_attr(raw_docs)
     fixed_docs, bad_docs = fix_docs(docs, coll_type)
     insert_docs(end_coll, fixed_docs, bad_docs)
+
+
+def get_docs(body):
+    obj_list = [ObjectId(doc_id) for doc_id in body[0]]
+    coll_type = body[1]
+    _, src_coll = get_coll(coll_type)
+    raw_docs = list(src_coll.find({"_id": {"$in": obj_list}}))
+    return coll_type, raw_docs
 
 
 def get_coll(coll_type):
