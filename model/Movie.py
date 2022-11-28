@@ -2,7 +2,7 @@ from pydantic import BaseModel, validator
 from pydantic.typing import Optional
 
 attr_list = {"_id", "id", "keywords", "adult", "budget", "genres", "popularity", "title"}
-
+frg
 
 class Movie(BaseModel):
     title: Optional[str]
@@ -14,5 +14,11 @@ class Movie(BaseModel):
     @validator('min_budget')
     def split_str(cls, v):
         if v > 1000000000:
-            raise ValueError('must be less then 1000000000')
+            raise ValueError('budget must be less than 1000000000')
+        return v
+
+    @validator('min_popularity')
+    def split_str(cls, v):
+        if v > 70:
+            raise ValueError('popularity must be less than 70')
         return v
