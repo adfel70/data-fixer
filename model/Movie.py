@@ -19,6 +19,6 @@ class Movie(BaseModel):
 
     @validator('min_popularity')
     def split_str(cls, v):
-        if v > 70:
+        if v > 50:
             raise ValueError('popularity must be less than 70')
         return v
